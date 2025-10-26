@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Демо-оплата — Демонстрация (НЕ РЕАЛЬНО)</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#7c3aed;--muted:#9aa4b2;--glass: rgba(255,255,255,0.04)}
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial}
+    body{background:linear-gradient(180deg,#071129 0%, #071629 100%);color:#e6eef8;display:flex;align-items:center;justify-content:center;padding:24px}
+    .wrap{width:100%;max-width:880px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:28px;box-shadow:0 8px 30px rgba(2,6,23,0.6)}
+    header{display:flex;align-items:center;gap:16px}
+    .logo{width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#1e3a8a);display:flex;align-items:center;justify-content:center;font-weight:700}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:6px 0 18px;color:var(--muted)}
+
+    .grid{display:grid;grid-template-columns:1fr 360px;gap:20px}
+    @media(max-width:880px){.grid{grid-template-columns:1fr;padding-bottom:12px}}
+
+    .card{background:var(--card);border-radius:10px;padding:18px}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input[type=text], input[type=number], select{width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:15px;margin-bottom:12px}
+    button{display:inline-block;padding:10px 14px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent),#2563eb);color:white;font-weight:600;cursor:pointer}
+    .muted{color:var(--muted);font-size:13px}
+
+    .preview{display:flex;flex-direction:column;gap:12px}
+    .preview .line{display:flex;justify-content:space-between;font-size:14px}
+
+    .notice{background:rgba(124,58,237,0.08);border-left:4px solid rgba(124,58,237,0.7);padding:10px;border-radius:6px;color:#dcd7ff}
+
+    .fake-card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:10px;padding:14px}
+    .center{display:flex;justify-content:center}
+    .result{margin-top:12px;padding:12px;border-radius:8px;background:rgba(255,255,255,0.02)}
+    .success{color:#b7f5d0}
+    .error{color:#ffb4b4}
+    footer{margin-top:14px;color:var(--muted);font-size:13px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">Demo</div>
+      <div>
+        <h1>Демо-оплата — страница для тестов</h1>
+        <p class="lead">Эта страница — демонстрационная. <strong>Денег никто не снимает.</strong> Используйте её для тестирования Telegram-бота, интерфейсов и демонстраций.</p>
+      </div>
+    </header>
+
+    <div class="grid" style="margin-top:16px">
+      <div>
+        <div class="card">
+          <div class="notice">
+            ⚠️ <strong>Важно:</strong> Страница только имитирует процесс оплаты. Не отправляйте реальные номера карт здесь.
+          </div>
+
+          <form id="demoForm" onsubmit="return false;" style="margin-top:12px">
+            <label for="description">Описание (чек)</label>
+            <input id="description" type="text" value="Оплата чека #Demo" />
+
+            <label for="amount">Сумма (₽)</label>
+            <input id="amount" type="number" min="0" step="0.01" value="500" />
+
+            <label for="payer">Плательщик (имя)</label>
+            <input id="payer" type="text" placeholder="Иван Иванов" />
+
+            <div style="margin:8px 0" class="muted">Данные карты не собираются — это только визуализация.</div>
+
+            <div class="fake-card">
+              <label>Номер карты</label>
+              <input type="text" value="•••• •••• •••• ••••" disabled />
+              <div style="display:flex;gap:10px">
+                <div style="flex:1">
+                  <label>Срок</label>
+                  <input type="text" value="MM/YY" disabled />
+                </div>
+                <div style="width:120px">
+                  <label>CVC</label>
+                  <input type="text" value="•••" disabled />
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
+              <button id="payBtn">Оплатить (симуляция)</button>
+              <div class="muted">или <a href="#" id="resetLink">сбросить</a></div>
+            </div>
+
+            <div id="result" class="result" aria-live="polite" style="display:none"></div>
+          </form>
+        </div>
+
+        <footer>
+          <div>Хостинг: GitHub Pages / любой статический хост.</div>
+          <div>Как использовать: вставьте URL этой страницы в кнопку бота Telegram (InlineKeyboardButton url).</div>
+        </footer>
+      </div>
+
+      <aside>
+        <div class="card">
+          <h3>Информация о платеже</h3>
+          <div class="preview">
+            <div class="line"><div class="muted">Описание</div><div id="pvDesc">Оплата чека #Demo</div></div>
+            <div class="line"><div class="muted">Сумма</div><div id="pvAmount">500 ₽</div></div>
+            <div class="line"><div class="muted">Плательщик</div><div id="pvPayer">—</div></div>
+          </div>
+
+          <div style="margin-top:12px">
+            <h4 style="margin:6px 0">Результат симуляции</h4>
+            <div id="pvStatus" class="muted">Ожидание</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h4>Инструкция по использованию</h4>
+          <ol style="padding-left:16px;color:var(--muted)">
+            <li>Загрузите этот файл на статический хост (GitHub Pages, Netlify или VPS).</li>
+            <li>В Telegram-боте создайте кнопку с ссылкой на страницу (пример ниже).</li>
+            <li>При необходимости измените дизайн/текст прямо в HTML.</li>
+          </ol>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const desc = document.getElementById('description');
+    const amount = document.getElementById('amount');
+    const payer = document.getElementById('payer');
+    const pvDesc = document.getElementById('pvDesc');
+    const pvAmount = document.getElementById('pvAmount');
+    const pvPayer = document.getElementById('pvPayer');
+    const pvStatus = document.getElementById('pvStatus');
+    const payBtn = document.getElementById('payBtn');
+    const result = document.getElementById('result');
+    const resetLink = document.getElementById('resetLink');
+
+    function updatePreview(){
+      pvDesc.textContent = desc.value || '—';
+      pvAmount.textContent = (amount.value? parseFloat(amount.value).toFixed(2): '0.00') + ' ₽';
+      pvPayer.textContent = payer.value || '—';
+    }
+
+    desc.addEventListener('input', updatePreview);
+    amount.addEventListener('input', updatePreview);
+    payer.addEventListener('input', updatePreview);
+
+    payBtn.addEventListener('click', async () => {
+      // имитация процесса: блокируем кнопку, показываем прогресс и результат
+      payBtn.disabled = true;
+      const originalText = payBtn.textContent;
+      payBtn.textContent = 'Обработка...';
+      pvStatus.textContent = 'Идёт обработка...';
+
+      // короткая пауза для имитации (без отправки данных)
+      await new Promise(r => setTimeout(r, 1400));
+
+      // случайный результат успеха/ошибки для теста
+      const success = true; // оставляем всегда успешным — измените при необходимости
+
+      if(success){
+        result.style.display = 'block';
+        result.innerHTML = '<div class="success">✅ Платёж симулирован — деньги не списывались.</div>' +
+                           '<div class="muted" style="margin-top:6px">Описание: '+escapeHtml(desc.value||'—')+ '<br>Сумма: '+(amount.value? parseFloat(amount.value).toFixed(2): '0.00')+' ₽</div>';
+        pvStatus.textContent = 'Оплата завершена (симуляция)';
+      } else {
+        result.style.display = 'block';
+        result.innerHTML = '<div class="error">✖ Ошибка (симуляция)</div>';
+        pvStatus.textContent = 'Ошибка при оплате (симуляция)';
+      }
+
+      payBtn.textContent = originalText;
+      payBtn.disabled = false;
+    });
+
+    resetLink.addEventListener('click', (e)=>{e.preventDefault(); desc.value='Оплата чека #Demo'; amount.value='500'; payer.value=''; updatePreview(); result.style.display='none'; pvStatus.textContent='Ожидание';});
+
+    function escapeHtml(s){ if(!s) return ''; return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[c]); }
+
+    updatePreview();
+  </script>
+</body>
+</html>
